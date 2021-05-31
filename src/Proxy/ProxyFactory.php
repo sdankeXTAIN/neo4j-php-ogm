@@ -15,6 +15,8 @@ use GraphAware\Common\Type\Node;
 use GraphAware\Neo4j\OGM\EntityManager;
 use GraphAware\Neo4j\OGM\Metadata\NodeEntityMetadata;
 use GraphAware\Neo4j\OGM\Metadata\RelationshipMetadata;
+use ReflectionNamedType;
+use ReflectionType;
 
 class ProxyFactory
 {
@@ -99,22 +101,22 @@ class $proxyClass extends $class implements EntityProxy
     private \$initialized = [];
     private \$initializers = [];
     private \$node;
-    
+
     public function __setNode(\$node)
     {
         \$this->node = \$node;
     }
-    
+
     public function __setInitializers(array \$initializers)
     {
         \$this->initializers = \$initializers;
     }
-    
+
     public function __setInitialized(\$property)
     {
         \$this->initialized[\$property] = null;
     }
-    
+
     public function __initializeProperty(\$propertyName)
     {
         if (!array_key_exists(\$propertyName, \$this->initialized)) {
@@ -122,7 +124,7 @@ class $proxyClass extends $class implements EntityProxy
             \$this->initialized[\$propertyName] = null;
         }
     }
-    
+
     $methodProxies
 }
 
@@ -160,7 +162,22 @@ PROXY;
                     $reflMethod = $reflClass->getMethod($g);
                     if ($reflMethod->hasReturnType()) {
                         $rt = $reflMethod->getReturnType();
-                        $getter .= ': '. ($rt->allowsNull() ? ' ?' : '') . $rt;
+                        $getter .= ': '. ($rt->allowsNull() ? ' ?' : '')
+                            . ($rt instanceof ReflectionNamedType
+                                ? $rt->getName()
+                                // for PHP > 8.0
+                                : implode(
+                                    "|",
+                                    array_reduce(
+                                        $rt->getTypes(),
+                                        function(array $mixedTypes, ReflectionNamedType $type): array {
+                                            $mixedTypes[] = $type->getName();
+                                            return $mixedTypes;
+                                        },
+                                        []
+                                    )
+                                )
+                            );
                     }
                 }
             }
