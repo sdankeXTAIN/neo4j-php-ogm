@@ -25,7 +25,7 @@
         "doctrine/annotations": "^1.13",
         "doctrine/collections": "^1.6",
         "doctrine/common": "^2.13.1",
-        "autoprotect-group/neo4j-php-client": "^5.3.3"
+        "autoprotect-group/neo4j-php-client": "^5.4.4"
     },
     "autoload": {
         "psr-4": {
