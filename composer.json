@@ -24,7 +24,7 @@
         "php": "^7.4|^8.0",
         "doctrine/annotations": "^1.13",
         "doctrine/collections": "^1.6",
-        "doctrine/common": "^3.0",
+        "doctrine/common": "^2.13.1",
         "autoprotect-group/neo4j-php-client": "^5.3.2"
     },
     "autoload": {
