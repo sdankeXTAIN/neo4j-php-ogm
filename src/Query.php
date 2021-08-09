@@ -62,7 +62,7 @@ class Query
 
     /**
      * @param string $key
-     * @param string $value
+     * @param null|string|array|bool|int|float $value
      * @param null|int $type
      * @return $this
      */
