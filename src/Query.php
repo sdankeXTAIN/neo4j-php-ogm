@@ -266,7 +266,7 @@ class Query
         $result = $this->execute();
 
         if (empty($result)) {
-            throw new NoResultException('Entities have not been founded');
+            throw new NoResultException('Entities have not been found');
         }
 
         if (count($result) > 1) {
