@@ -265,12 +265,12 @@ class Query
     {
         $result = $this->execute();
 
-        if (count($result) > 1) {
-            throw new NonUniqueResultException(sprintf('Expected 1 or null result, got %d', count($result)));
+        if (empty($result)) {
+            throw new NoResultException('Entities have not been founded');
         }
 
-        if (empty($result)) {
-            throw new NoResultException();
+        if (count($result) > 1) {
+            throw new NonUniqueResultException(sprintf('Expected 1 or null result, got %d', count($result)));
         }
 
         return $result[0];
