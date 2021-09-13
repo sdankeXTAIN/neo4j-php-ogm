@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the GraphAware Neo4j PHP OGM package.
  *
@@ -14,6 +16,7 @@ namespace GraphAware\Neo4j\OGM;
 use GraphAware\Neo4j\OGM\Exception\Result\NonUniqueResultException;
 use GraphAware\Neo4j\OGM\Exception\Result\NoResultException;
 use Laudis\Neo4j\Types\CypherList;
+use Laudis\Neo4j\Types\CypherMap;
 
 class Query
 {
@@ -26,6 +29,8 @@ class Query
     public const HYDRATE_MAP = "HYDRATE_MAP";
 
     public const HYDRATE_MAP_COLLECTION = "HYDRATE_MAP_COLLECTION";
+
+    public const HYDRATE_SINGLE_MAP = "HYDRATE_SINGLE_MAP";
 
     protected string $cql;
 
@@ -92,6 +97,7 @@ class Query
 
     private function handleResult(CypherList $result): array
     {
+        // TODO need investigation to check if each mode returns arrays of one schema, of mot it should be refactored
         $queryResult = [];
 
         foreach ($result->toArray() as $record) {
@@ -99,7 +105,6 @@ class Query
             $keys = $record->keys();
 
             foreach ($keys as $key) {
-
                 $mode = array_key_exists($key, $this->mappings) ? $this->mappings[$key][1] : self::HYDRATE_RAW;
 
                 if ($mode === self::HYDRATE_SINGLE) {
@@ -121,6 +126,8 @@ class Query
                     $row[$key] = $this->hydrateMap($record->get($key)->toArray());
                 } elseif ($mode === self::HYDRATE_RAW) {
                     $row[$key] = $record->get($key);
+                } elseif ($mode === self::HYDRATE_SINGLE_MAP) {
+                    $row[$key] = $this->hydrateSingleMap($record->get($key));
                 }
             }
 
@@ -130,6 +137,20 @@ class Query
         return $queryResult;
     }
 
+    private function hydrateSingleMap(array $map): array
+    {
+        $row = [];
+        foreach ($map as $key => $value) {
+            if ($value instanceof CypherMap || $value instanceof CypherList) {
+                $row[$key] = $this->hydrateMap($value->toArray());
+            } else {
+                $row[$key] = $value;
+            }
+        }
+
+        return $row;
+    }
+
     /**
      * Maps collection of maps.
      * For cases where map is collection of another maps,
@@ -137,10 +158,11 @@ class Query
      * in that case "cols" is collection of maps and should be mapped as
      * addEntityMapping('cols', null, Query::HYDRATE_MAP_COLLECTION);
      *
-     * @param $map
+     * @param CypherList $map
+     *
      * @return array
      */
-    private function hydrateMapCollection($map): array
+    private function hydrateMapCollection(CypherList $map): array
     {
         $row = [];
         foreach ($map as $value) {
@@ -158,7 +180,7 @@ class Query
      * addEntityMapping('col', null, Query::HYDRATE_MAP);
      * addEntityMapping('data', OtherNode::class, Query::HYDRATE_COLLECTION);
      *
-     * @param $map array
+     * @param array $map
      * @return array
      */
     private function hydrateMap(array $map): array
@@ -177,9 +199,9 @@ class Query
      *
      * @param string $key
      * @param mixed $value
-     * @return array|null|int|object
+     * @return array|null|int|object|string
      */
-    private function hydrateMapValue(string $key, mixed $value): array|null|int|object
+    private function hydrateMapValue(string $key, mixed $value): array|null|int|object|string
     {
         $row = [];
         $mode = array_key_exists($key, $this->mappings) ? $this->mappings[$key][1] : self::HYDRATE_RAW;
@@ -198,7 +220,9 @@ class Query
         } elseif ($mode === self::HYDRATE_MAP) {
             $row = $this->hydrateMap($value->toArray());
         } elseif ($mode === self::HYDRATE_RAW) {
-            $row = $value instanceof CypherList ? $value->toArray() : $value;
+            $row = $value;
+        } elseif ($mode === self::HYDRATE_SINGLE_MAP) {
+            $row = $this->hydrateSingleMap($value->toArray());
         }
         return $row;
     }
