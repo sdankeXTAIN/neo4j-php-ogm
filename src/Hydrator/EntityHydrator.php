@@ -249,8 +249,12 @@ class EntityHydrator
         }
     }
 
-    public function hydrateNode(Node $node, $class = null)
+    public function hydrateNode(?Node $node, $class = null)
     {
+        if ($node === null) {
+            return null;
+        }
+
         $cm = null === $class ? $this->_classMetadata->getClassName() : $class;
         $id = $node->identity();
 
