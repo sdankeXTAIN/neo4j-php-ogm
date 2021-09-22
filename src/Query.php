@@ -71,6 +71,43 @@ class Query
         return $this->execute();
     }
 
+    public function getNotEmptyResult(): array
+    {
+        $result = $this->execute();
+
+        if (empty($result)) {
+            throw new NoResultException('Entities have not been found');
+        }
+
+        return $result;
+    }
+
+    public function getOneResult()
+    {
+        $result = $this->getNotEmptyResult();
+
+        if (count($result) > 1) {
+            throw new NonUniqueResultException(sprintf('Expected 1 or null result, got %d', count($result)));
+        }
+
+        return $result[0];
+    }
+
+    public function getOneOrNullResult(): ?array
+    {
+        $result = $this->execute();
+
+        if (empty($result)) {
+            return null;
+        }
+
+        if (count($result) > 1) {
+            throw new NonUniqueResultException(sprintf('Expected 1 or null result, got %d', count($result)));
+        }
+
+        return $result;
+    }
+
     public function execute(): array
     {
         $stmt = $this->cql;
@@ -225,36 +262,5 @@ class Query
             $row = $this->hydrateSingleMap($value->toArray());
         }
         return $row;
-    }
-
-    public function getOneOrNullResult(): ?array
-    {
-        $result = $this->execute();
-
-        if (empty($result)) {
-            return null;
-        }
-
-        if (count($result) > 1) {
-            throw new NonUniqueResultException(sprintf('Expected 1 or null result, got %d', count($result)));
-        }
-
-
-        return $result;
-    }
-
-    public function getOneResult()
-    {
-        $result = $this->execute();
-
-        if (empty($result)) {
-            throw new NoResultException('Entities have not been found');
-        }
-
-        if (count($result) > 1) {
-            throw new NonUniqueResultException(sprintf('Expected 1 or null result, got %d', count($result)));
-        }
-
-        return $result[0];
     }
 }
