@@ -115,11 +115,12 @@ class Query
 
     public function execute(): array
     {
-        $stmt = $this->getCql();
-        $parameters = $this->formatParameters();
+        $statement = $this->entityManager->isV4()
+            ? preg_replace('/{([a-zA-Z0-9]+)}/', '$$1', $this->getCql())
+            : $this->getCql();
 
         /** @var CypherList $result */
-        $result = $this->entityManager->getDatabaseDriver()->run($stmt, $parameters);
+        $result = $this->entityManager->getDatabaseDriver()->run($statement, $this->formatParameters());
         if ($result->count() === 0) {
             return [];
         }
