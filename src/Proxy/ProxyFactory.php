@@ -193,15 +193,16 @@ METHOD;
         return 'neo4j_ogm_proxy_' . str_replace('\\', '_', $this->classMetadata->getClassName());
     }
 
-    private function getInitializerFor(RelationshipMetadata $relationship)
-    {
+    private function getInitializerFor(
+        RelationshipMetadata $relationship
+    ): SingleNodeInitializer | NodeCollectionInitializer {
         if (!$relationship->isCollection()) {
             $initializer = new SingleNodeInitializer($this->em, $relationship, $this->classMetadata);
-        } elseif ($relationship->isCollection()) {
+        } else {
             $initializer = new NodeCollectionInitializer($this->em, $relationship, $this->classMetadata);
         }
 
-        return $initializer ?? null;
+        return $initializer;
     }
 
     private function newProxyInstance($proxyClass)
