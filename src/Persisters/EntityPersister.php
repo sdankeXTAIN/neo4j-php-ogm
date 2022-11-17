@@ -24,7 +24,7 @@ class EntityPersister extends BasicEntityPersister
 
         $query = sprintf('CREATE (n:%s)', $this->classMetadata->getLabel());
         if (!empty($propertyValues)) {
-            $query .= sprintf(" SET n += {$this->paramStyle}", 'properties');
+            $query .= sprintf(" SET n += {$this->paramStyle}", $this->getPropertyListString($propertyValues));
         }
         if (!empty($extraLabels)) {
             foreach ($extraLabels as $label) {
@@ -38,16 +38,16 @@ class EntityPersister extends BasicEntityPersister
         }
 
         $query .= ' RETURN id(n) as id';
-
-        return Statement::create($query, ['properties' => $propertyValues]);
+        return Statement::create($query, $propertyValues);
     }
 
     public function getUpdateQuery(object $object): Statement
     {
         [$propertyValues, $extraLabels, $removeLabels] = $this->getBaseQueryProperties($object);
 
+        $label = $this->classMetadata->getLabel();
         $id = $this->classMetadata->getIdValue($object);
-        $query = sprintf("MATCH (n) WHERE id(n) = {$this->paramStyle} SET n += {$this->paramStyle}", 'id', 'props');
+        $query = sprintf("MATCH (n:%s) WHERE id(n) = $id SET n += {$this->paramStyle}", $label, $this->getPropertyListString($propertyValues));
         if (!empty($extraLabels)) {
             foreach ($extraLabels as $label) {
                 $query .= ' SET n:' . $label;
@@ -59,13 +59,13 @@ class EntityPersister extends BasicEntityPersister
             }
         }
 
-        return Statement::create($query, ['id' => $id, 'props' => $propertyValues]);
+        return Statement::create($query, $propertyValues);
     }
 
     public function refresh(int $id, object $entity): void
     {
         $label = $this->classMetadata->getLabel();
-        $query = sprintf("MATCH (n:%s) WHERE id(n) = {$this->paramStyle} RETURN n", $label, 'id');
+        $query = sprintf("MATCH (n:%s) WHERE id(n) = \$id RETURN n", $label);
         $result = $this->entityManager->getDatabaseDriver()->run($query, ['id' => $id]);
 
         if ($result->count() > 0) {
@@ -76,15 +76,17 @@ class EntityPersister extends BasicEntityPersister
 
     public function getDetachDeleteQuery(object $object): Statement
     {
-        $query = sprintf("MATCH (n) WHERE id(n) = {$this->paramStyle} DETACH DELETE n", 'id');
+        $label = $this->classMetadata->getLabel();
+        $query = sprintf("MATCH (n:%s) WHERE id(n) = \$id DETACH DELETE n", $label);
         $id = $this->classMetadata->getIdValue($object);
 
-        return Statement::create($query, ['id' => $id]);
+        return Statement::create($query, $id);
     }
 
     public function getDeleteQuery(object $object): Statement
     {
-        $query = sprintf("MATCH (n) WHERE id(n) = {$this->paramStyle} DELETE n", 'id');
+        $label = $this->classMetadata->getLabel();
+        $query = sprintf("MATCH (n:%s) WHERE id(n) = \$id DELETE n", $label);
         $id = $this->classMetadata->getIdValue($object);
 
         return Statement::create($query, ['id' => $id]);
@@ -123,5 +125,13 @@ class EntityPersister extends BasicEntityPersister
         }
 
         return [$propertyValues, $extraLabels, $removeLabels];
+    }
+
+    private function getPropertyListString(array $object): string{
+        $propertyString = '';
+        foreach ($object as $key => $value) {
+            $propertyString.=$key.': $'.$key.', ';
+        }
+        return substr($propertyString, 0, -2);
     }
 }

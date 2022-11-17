@@ -51,7 +51,7 @@ class BaseRepository implements ObjectRepository, Selectable
     {
         $persister = $this->entityManager->getEntityPersister($this->className);
 
-        return $persister->load($criteria);
+        return $persister->load($criteria, $orderBy);
     }
 
     public function findOneById(int $id): ?object

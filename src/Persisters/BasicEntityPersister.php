@@ -126,7 +126,7 @@ class BasicEntityPersister
         foreach ($criteria as $key => $criterion) {
             $key = (string) $key;
             $clause = $filter_cursor === 0 ? 'WHERE' : 'AND';
-            $cypher .= sprintf("%s %s.%s = {$this->paramStyle} ", $clause, $identifier, $key, $key);
+            $cypher .= sprintf("%s %s.%s = \$$key ", $clause, $identifier, $key);
             $params[$key] = $criterion;
             ++$filter_cursor;
         }
@@ -215,11 +215,10 @@ class BasicEntityPersister
     {
         $identifier = $this->classMetadata->getEntityAlias();
         $cypher = sprintf(
-            "MATCH (%s:`%s`)  WHERE id(%s) = {$this->paramStyle} RETURN %s",
+            "MATCH (%s:`%s`)  WHERE id(%s) = \$id RETURN %s",
             $identifier,
             $this->classMetadata->getLabel(),
             $identifier,
-            'id',
             $identifier
         );
 
