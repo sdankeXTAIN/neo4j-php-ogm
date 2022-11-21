@@ -180,8 +180,7 @@ class BasicEntityPersister
         $isOutgoing = $relationshipMeta->getDirection() === DirectionUtils::OUTGOING ? '>' : '';
 
         $cypher = sprintf(
-            "MATCH (n) WHERE id(n) = {$this->paramStyle} MATCH (n)%s(%s) RETURN {target: %s(%s), re: %s} AS %s",
-            'id',
+            "MATCH (n) WHERE id(n) = \$id MATCH (n)%s(%s) RETURN {target: %s(%s), re: %s} AS %s",
             sprintf('%s-[%s:`%s`]-%s', $isIncoming, $relAlias, $relationshipType, $isOutgoing),
             $targetAlias,
             $isIncoming ? 'startNode' : 'endNode',
@@ -245,8 +244,8 @@ class BasicEntityPersister
 
         $relPattern = sprintf('%s-[:`%s`]-%s', $isIncoming, $relationshipType, $isOutgoing);
 
-        $cypher  = sprintf("MATCH (n) WHERE id(n) = {$this->paramStyle} ", 'id');
-        $cypher .= 'RETURN size((n)' . $relPattern . '(' . $targetClassLabel . ')) ';
+        $cypher  = sprintf("MATCH (n) WHERE id(n) = \$id ");
+        $cypher .= 'RETURN size([(n)' . $relPattern . '(' . $targetClassLabel . ') | n]) ';
         $cypher .= 'AS ' . $alias;
 
         return Statement::create($cypher, ['id' => $sourceEntityId]);
@@ -259,8 +258,7 @@ class BasicEntityPersister
         $targetAlias = $targetMetadata->getEntityAlias();
 
         $cypher = sprintf(
-            "MATCH (n) WHERE id(n) = {$this->paramStyle} MATCH (n)%s(%s:%s) ",
-            'id',
+            "MATCH (n) WHERE id(n) = \$id MATCH (n)%s(%s:%s) ",
             sprintf(
                 '%s-[%s:`%s`]-%s',
                 $relationshipMeta->getDirection() === DirectionUtils::INCOMING ? '<' : '',

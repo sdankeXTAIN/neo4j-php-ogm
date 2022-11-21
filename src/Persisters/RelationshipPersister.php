@@ -43,10 +43,8 @@ class RelationshipPersister
         };
 
         $query = sprintf(
-            "MATCH (a), (b) WHERE id(a) = {$this->paramStyle} AND id(b) = {$this->paramStyle}"
+            "MATCH (a), (b) WHERE id(a) = \$ida AND id(b) = \$idb"
             . ' MERGE (a) %s (b) RETURN id(r)',
-            'ida',
-            'idb',
             sprintf($relString, $relationship->getType())
         );
 
@@ -65,10 +63,8 @@ class RelationshipPersister
         };
 
         $query = sprintf(
-            "MATCH (a), (b) WHERE id(a) = {$this->paramStyle} AND id(b) = {$this->paramStyle}"
+            "MATCH (a), (b) WHERE id(a) = \$ida AND id(b) = \$idb"
             . ' MATCH (a) %s (b) DELETE r',
-            'ida',
-            'idb',
             sprintf($relString, $relationship->getType())
         );
 

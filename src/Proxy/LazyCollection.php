@@ -28,9 +28,9 @@ class LazyCollection extends AbstractLazyCollection
     private $initialCount;
 
     public function __construct(
-        private SingleNodeInitializer $initializer,
+        private ?SingleNodeInitializer $initializer,
         private $object,
-        private RelationshipMetadata $relationshipMetadata
+        private ?RelationshipMetadata $relationshipMetadata
     ) {
         $this->collection = new Collection();
     }
