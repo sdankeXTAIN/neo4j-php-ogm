@@ -30,9 +30,10 @@ class LazyCollection extends AbstractLazyCollection
     public function __construct(
         private ?SingleNodeInitializer $initializer,
         private $object,
-        private ?RelationshipMetadata $relationshipMetadata
+        private ?RelationshipMetadata $relationshipMetadata,
+        ?Collection $collection = null
     ) {
-        $this->collection = new Collection();
+        $collection ? $this->collection = $collection : $this->collection = new Collection();
     }
 
     protected function doInitialize()
@@ -81,5 +82,9 @@ class LazyCollection extends AbstractLazyCollection
         }
 
         return $this->initialCount + count($this->collection);
+    }
+
+    public function getCollection(): ?Collection {
+        return $this->collection;
     }
 }
