@@ -70,7 +70,7 @@ class DateTimeConverter extends Converter
         $v = $values[$this->propertyName];
 
         if (self::DEFAULT_FORMAT === $format) {
-            return DateTime::createFromFormat('U', $v, $tz);
+            return DateTime::createFromFormat('U', (string)$v, $tz);
         }
 
         if (self::LONG_TIMESTAMP_FORMAT === $format) {
